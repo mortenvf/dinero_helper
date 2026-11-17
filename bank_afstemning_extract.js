@@ -28,11 +28,22 @@ result = await (async () => {
                     `.${cls} p.transaction-line-text`
                 )?.textContent.trim() ?? '';
 
+            const description = getText('reconciliation-item-description');
+            const account = description.match(/Coop|REMA1000|FOETEX|føtex|Bilka|Netto|NETTO|EUROSPAR|SPAR KASTETVEJ|MENY|LIDL|HJEM-IS|COOP365|LOEVBJERG|Guldbageren|Rohde & Schwarz/) ? 2001
+                          : description.match(/JEM & FIX|jem&fix|Harald Nyborg|BAUHAUS|SILVAN|Plantorama|Billigblomst|Biltema/) ? 8040
+                          : description.match(/NETFLIX.COM|Spotify/) ? 2032
+                          : description.match(/ADM.SERVICE FYN/) ? 2171
+                          : description.match(/UNO-X/) ? 2011
+                          : description.match(/H: Indskud/) ? 60101
+                          : description.match(/Overført fra Morten/) ? 60102
+                          : null;
+
             transactions.set(id, {
                 id,
                 date: getText('reconciliation-item-date'),
-                description: getText('reconciliation-item-description'),
-                amount: getText('reconciliation-item-amount')
+                description: description,
+                amount: getText('reconciliation-item-amount'),
+                account: account
             });
         }
     };
@@ -75,9 +86,10 @@ result = await (async () => {
     collect();
 
     const result = [...transactions.values()];
+    const hitRate = result.filter(x => x.account !== null).length;
 
-    console.log(`Extracted ${result.length} transactions`);
     console.table(result);
+    console.log(`Extracted ${result.length} transactions, account hits ${hitRate}`);
     return result;
 
 
